@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: config-server
+  profiles:
+    active: git # Switched from native to git profile mapping
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/ihuaylupo/config.git
+          clone-on-start: true
+          force-pull: true
+
+server:
+  port: 8071
+
+encrypt:
+  key: fje83Ki8403Iod87dne7Yjsl3THueh48jfuO9j4U2hf64Lo 
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

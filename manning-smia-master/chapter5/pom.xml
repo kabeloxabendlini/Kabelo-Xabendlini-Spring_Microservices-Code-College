@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.optimagrowth</groupId>
+  <version>0.0.1-SNAPSHOT</version>
+  <artifactId>ostock-parent-pom</artifactId>
+  <packaging>pom</packaging>
+
+  <name>optimagrowth-parent-pom</name>
+  <description>Parent Pom for the optimagrowth project</description>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.2.3.RELEASE</version>
+    <relativePath/> <!-- lookup parent from repository -->
+  </parent>
+
+  <properties>
+    <docker.image.prefix>ostock</docker.image.prefix>
+    <!-- Overrides legacy version to fix Java 17 IllegalAccessError compilation crash -->
+    <lombok.version>1.18.28</lombok.version>
+  </properties>
+
+  <modules>
+    <module>configserver</module>
+    <module>licensing-service</module>
+  </modules>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.spotify</groupId>
+        <artifactId>dockerfile-maven-plugin</artifactId>
+        <version>1.4.13</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+
