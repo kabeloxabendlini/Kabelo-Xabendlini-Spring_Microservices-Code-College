@@ -1,6 +1,6 @@
 ﻿#stage 1
 #Start with a base image containing Java runtime
-FROM eclipse-temurin:11-jdk as build
+FROM eclipse-temurin:17-jdk-jammy as build
 
 # Add Maintainer Info
 LABEL maintainer="Illary Huaylupo <illaryhs@gmail.com>"
@@ -16,7 +16,7 @@ RUN mkdir -p target/dependency && (cd target/dependency; jar -xf /app.jar)
 
 #stage 2
 #Same Java runtime
-FROM eclipse-temurin:11-jdk
+FROM eclipse-temurin:17-jre-jammy
 
 #Add volume pointing to /tmp
 VOLUME /tmp
@@ -28,4 +28,4 @@ COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
 COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
 
 #execute the application
-ENTRYPOINT ["java","-cp","app:app/lib/*","com.optimagrowth.license.LicenseServiceApplication"]
+ENTRYPOINT ["java","--add-opens=java.base/java.util=ALL-UNNAMED","--add-opens=java.base/java.lang=ALL-UNNAMED","--add-opens=java.base/java.lang.reflect=ALL-UNNAMED","--add-opens=java.base/java.text=ALL-UNNAMED","--add-opens=java.base/java.time=ALL-UNNAMED","--add-opens=java.desktop/java.awt.font=ALL-UNNAMED","-cp","app:app/lib/*","com.optimagrowth.license.LicenseServiceApplication"]

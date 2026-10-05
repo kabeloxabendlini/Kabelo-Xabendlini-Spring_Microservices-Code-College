@@ -20,7 +20,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    configserver:
+  configserver:
     image: ostock/configserver:0.0.1-SNAPSHOT
     ports:
        - "8071:8071"
@@ -36,7 +36,7 @@ services:
       backend:
         aliases:
           - "configserver"
-   eurekaserver:
+  eurekaserver:
     image: ostock/eurekaserver:0.0.1-SNAPSHOT
     ports:
       - "8070:8070"
