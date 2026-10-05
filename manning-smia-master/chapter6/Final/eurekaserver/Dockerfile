@@ -1,6 +1,6 @@
 #stage 1
-#Start with a base image containing Java runtime
-FROM openjdk:11-slim as build
+#Start with a base image containing Java 17 runtime
+FROM eclipse-temurin:17-jdk-alpine as build
 
 # Add Maintainer Info
 LABEL maintainer="Illary Huaylupo <illaryhs@gmail.com>"
@@ -15,8 +15,8 @@ COPY ${JAR_FILE} app.jar
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf /app.jar)
 
 #stage 2
-#Same Java runtime
-FROM openjdk:11-slim
+#Same Java 17 runtime for execution
+FROM eclipse-temurin:17-jdk-alpine
 
 #Add volume pointing to /tmp
 VOLUME /tmp
@@ -28,4 +28,4 @@ COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
 COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
 
 #execute the application
-ENTRYPOINT ["java","-cp","app:app/lib/*","com.optimagrowth.eureka.EurekaServerApplication"]
+ENTRYPOINT ["java","--add-opens=java.base/java.util=ALL-UNNAMED","--add-opens=java.base/java.lang=ALL-UNNAMED","--add-opens=java.base/java.lang.reflect=ALL-UNNAMED","--add-opens=java.base/java.text=ALL-UNNAMED","--add-opens=java.base/java.time=ALL-UNNAMED","-cp","app:app/lib/*","com.optimagrowth.eureka.EurekaServerApplication"]

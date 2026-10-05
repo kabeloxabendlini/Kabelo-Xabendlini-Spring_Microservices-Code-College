@@ -20,6 +20,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
   configserver:
     image: ostock/configserver:0.0.1-SNAPSHOT
     ports:
@@ -30,6 +31,13 @@ services:
       backend:
         aliases:
           - "configserver"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8071/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 120s
+
   eurekaserver:
     image: ostock/eurekaserver:0.0.1-SNAPSHOT
     ports:
@@ -38,11 +46,12 @@ services:
       database:
         condition: service_healthy
       configserver:
-        condition: service_started  
+        condition: service_healthy
     networks:
       backend:
         aliases:
           - "eurekaserver"
+
   licensingservice:
     image: ostock/licensing-service:0.0.3-SNAPSHOT
     environment:
@@ -55,11 +64,12 @@ services:
       database:
         condition: service_healthy
       configserver:
-        condition: service_started
+        condition: service_healthy
     ports:
       - "8080:8080"
     networks:
       - backend
+
   organizationservice:
     image: ostock/organization-service:0.0.1-SNAPSHOT
     environment:
@@ -72,7 +82,7 @@ services:
       database:
         condition: service_healthy
       configserver:
-        condition: service_started
+        condition: service_healthy
     ports:
       - "8081:8081"
     networks:

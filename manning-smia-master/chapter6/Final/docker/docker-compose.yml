@@ -20,17 +20,23 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-  configserver:
+    configserver:
     image: ostock/configserver:0.0.1-SNAPSHOT
     ports:
        - "8071:8071"
     environment:
       ENCRYPT_KEY: "fje83Ki8403Iod87dne7Yjsl3THueh48jfuO9j4U2hf64Lo"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8071/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 120s
     networks:
       backend:
         aliases:
           - "configserver"
-  eurekaserver:
+   eurekaserver:
     image: ostock/eurekaserver:0.0.1-SNAPSHOT
     ports:
       - "8070:8070"
@@ -38,7 +44,7 @@ services:
       database:
         condition: service_healthy
       configserver:
-        condition: service_started  
+        condition: service_healthy
     networks:
       backend:
         aliases:
@@ -55,7 +61,7 @@ services:
       database:
         condition: service_healthy
       configserver:
-        condition: service_started
+        condition: service_healthy
     ports:
       - "8080:8080"
     networks:
@@ -72,7 +78,7 @@ services:
       database:
         condition: service_healthy
       configserver:
-        condition: service_started
+        condition: service_healthy
     ports:
       - "8081:8081"
     networks:

@@ -16,6 +16,8 @@
 
 	<properties>
 		<java.version>11</java.version>
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
 		<docker.image.prefix>ostock</docker.image.prefix>
 		<spring-cloud.version>Hoxton.SR1</spring-cloud.version>
 	</properties>
@@ -40,7 +42,6 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
 	</dependencies>
 
 	<dependencyManagement>
@@ -68,7 +69,7 @@
 				<version>1.4.13</version>
 				<configuration>
 					<repository>${docker.image.prefix}/${project.artifactId}</repository>
-	                <tag>${project.version}</tag>
+					<tag>${project.version}</tag>
 					<buildArgs>
 						<JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
 					</buildArgs>
@@ -86,5 +87,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
