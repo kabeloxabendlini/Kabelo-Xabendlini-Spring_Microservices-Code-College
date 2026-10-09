@@ -122,7 +122,7 @@ services:
       kafkaserver:
         condition: service_started
     ports:
-      - "8080:8080"
+      - "8083:8080"
     networks:
       - backend
   organizationservice:
