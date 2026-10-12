@@ -1,0 +1,100 @@
+    Chapter 10 — Redis, Kafka, Gateway & Microservices Tests
+
+ 1.)    Step 1 — Open the Chapter 10 folder
+
+        Open PowerShell and run:
+
+        cd "C:\Users\Admin\Documents\Code College Repositories\Spring_Microservices - Code College\manning-smia-master\chapter10"
+
+
+ 2.)    Step 2 — Check the Docker containers
+        docker compose -f ".\docker\docker-compose.yml" ps -a
+
+        Confirm that Redis, Kafka, the Gateway, Eureka, and the backend services are running.
+
+
+ 3.)    Step 3 — Test Redis connectivity
+        docker compose -f ".\docker\docker-compose.yml" exec redisserver redis-cli ping
+
+        Expected result:
+
+        PONG
+
+        If the command reports that the service is not running, check Step 2 before proceeding.
+
+
+ 4.)    Step 4 — Check Kafka messages
+
+        Run this command to listen for organization-change events:
+
+        docker compose -f ".\docker\docker-compose.yml" exec kafkaserver kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic orgChangeTopic --from-beginning
+
+        Leave this command running while you perform the organization update in Step 7.
+
+        What to look for: Messages published to orgChangeTopic. If no messages appear, it does not necessarily mean Kafka is broken; the topic may have no messages yet.
+
+        Press Ctrl+C when you want to stop the consumer.
+
+
+
+ 5.)    Step 5 — Test the Licensing Service through the Gateway
+
+        Run:
+
+        curl.exe -i "http://localhost:8072/license/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62"
+
+        Expected result: A successful response containing licensing information.
+
+        If you receive HTTP 404 or another error, save the response. We already know that this route has returned HTTP 404, so we need to investigate service registration and Gateway routing if it still fails.
+
+
+
+ 6.)   Step 6 — Check Redis data
+
+        First, list the keys:
+
+        docker compose -f ".\docker\docker-compose.yml" exec redisserver redis-cli KEYS "*"
+
+        Then inspect the cached organization:
+
+        docker compose -f ".\docker\docker-compose.yml" exec redisserver redis-cli HGETALL organization:d898a142-de44-466c-8c88-9ceb2c2429d3
+
+        What to look for:
+
+        Whether Redis contains any keys.
+        Whether the organization hash exists.
+        Whether its fields and values are present.
+
+        An empty result does not automatically mean Redis is broken; the application may not have cached the organization yet.
+
+
+
+ 7.)    Step 7 — Update the organization through the Gateway
+
+        Run the following PowerShell commands separately.
+
+7.1)    —   Create the request body
+
+        $body = '{"id":"d898a142-de44-466c-8c88-9ceb2c2429d3","name":"OptimaGrowth Updated","contactName":"Admin","contactEmail":"illaryhs@gmail.com","contactPhone":"888888888"}'
+
+7.2)    — Send the update request
+
+        Invoke-RestMethod -Method Put -ContentType "application/json" -Body $body "http://localhost:8072/organization/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3"
+
+        Expected result: A successful response confirming the organization update.
+
+        If the request fails, note the HTTP status and error message.
+
+
+
+ 8.)    Step 8 — Repeat the Redis check
+
+        After the organization update, run:
+
+        docker compose -f ".\docker\docker-compose.yml" exec redisserver redis-cli HGETALL organization:d898a142-de44-466c-8c88-9ceb2c2429d3
+
+        Check whether the organization name has changed to:
+
+        OptimaGrowth Updated
+
+        The result depends on whether this chapter's application has implemented the expected Redis caching and invalidation behavior.
