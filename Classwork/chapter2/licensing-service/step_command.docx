@@ -1,0 +1,12 @@
+1.) Get-Content ".\pom.xml"
+
+2.) cd licensing-service
+    .\mvnw.cmd "-Dspring-boot.run.arguments=--server.port=8081" spring-boot:run
+
+    Get-ChildItem ".\src\main\java" -Recurse -Filter "*.java" |
+    ForEach-Object { $_.FullName }
+
+3.) Invoke-RestMethod -Uri "http://localhost:8081/actuator/health" -Method Get
+    curl.exe -i "http://localhost:8081/actuator/health"
+
+4.) Get-Content ".\src\main\resources\application.properties"

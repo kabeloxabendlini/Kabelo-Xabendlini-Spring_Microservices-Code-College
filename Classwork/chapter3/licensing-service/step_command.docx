@@ -1,0 +1,31 @@
+1.) cd licensing-service
+    mvnd spring-boot:run "-Dspring-boot.run.arguments=--server.port=8081"
+
+2.) http://localhost:8080/v1/organization/optimaGrowth/license/0235431845
+
+3.) http://localhost:8080/v1/organization/optimaGrowth/license
+
+4.) Putting everything together
+    Here is the architecture to remember:
+    When a client sends a request to your licensing service:
+    HTTP and routing: The controller receives the request.
+    Business logic: The service processes the operation.
+    Data representation: The model represents the license.
+    API response: The controller returns the result, potentially including HATEOAS links.
+    Internationalisation: If configured, the application 
+    resolves messages in the appropriate language.
+    Future improvements: Database persistence, validation, security and error handling 
+    make the service more robust.
+    The five key takeaways
+    Separation of concerns: Controllers handle HTTP, services handle business logic, 
+    and models represent data.
+    Resource-oriented URLs: /v1/organization/{organizationId}/license communicates 
+    both API version and resource ownership.
+    Internationalisation: Externalised messages make it easier to support multiple languages.
+    HATEOAS: Hypermedia links help clients discover related API operations.
+    Incremental development: Starting without a database or comprehensive error handling 
+    lets you learn the architecture before adding production complexity.
+    The central lesson: You're not simply building an endpoint that creates licenses. 
+    You're learning how to structure a microservice so that it can grow to support persistence,
+    security, internationalisation and more sophisticated API behaviour without everything
+    becoming tangled together.

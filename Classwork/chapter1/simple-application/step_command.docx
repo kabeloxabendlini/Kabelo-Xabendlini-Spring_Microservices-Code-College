@@ -1,0 +1,107 @@
+1.) mvnd spring-boot:run
+
+2.) Invoke-RestMethod -Uri "http://localhost:8081/hello/illary?lastName=huaylupo" -Method Get
+    curl.exe -i "http://localhost:8081/hello/illary?lastName=huaylupo"
+
+    Invoke-RestMethod -Uri "http://localhost:8081/hello/illary?lastName=huaylupo" -Method Get
+
+3.) $body = @{
+    firstName = "illary"
+    lastName  = "huaylupo"
+    } | ConvertTo-Json -Compress
+
+    Write-Host $body
+
+    Invoke-RestMethod `
+    -Uri "http://localhost:8081/hello" `
+    -Method Post `
+    -ContentType "application/json" `
+    -Body $body
+
+4.) Step 4 — Understand what Spring Boot is doing
+
+    Now that both endpoints work, let's examine the main annotations that make your application function.
+
+    At the top of Application.java, you have:
+
+    @SpringBootApplication
+    @RestController
+    @RequestMapping(value="hello")
+    public class Application {
+    4.1 @SpringBootApplication
+
+    This annotation marks the main Spring Boot configuration class.
+
+    It combines three major capabilities:
+
+    Annotation	Purpose
+    @SpringBootConfiguration	Identifies the class as a source of Spring configuration
+    @EnableAutoConfiguration	Enables automatic configuration based on the application and its dependencies
+    @ComponentScan	Searches for Spring-managed components in the relevant package hierarchy
+
+    This reduces the amount of configuration you need to write yourself.
+
+    4.2 @RestController
+
+    This annotation identifies the class as a REST controller.
+
+    It combines @Controller and @ResponseBody.
+
+    In practice, this means your method return values are written to the HTTP response body instead of being interpreted as view names.
+
+    One important clarification: @RestController does not guarantee that every returned value is JSON.
+
+    Your application demonstrates this perfectly.
+
+    You return a Java String containing JSON-formatted text, but your HTTP response header is:
+
+    Content-Type: text/plain;charset=UTF-8
+
+    The body looks like JSON, but Spring is treating the return value as a string.
+
+    4.3 Embedded Tomcat
+
+    When you ran:
+
+    mvnd spring-boot:run
+
+    Spring Boot launched your application with its embedded Tomcat web server.
+
+    You didn't need to install and start Tomcat separately.
+
+    This is one of the reasons Spring Boot is useful for building small, independently runnable services.
+
+    Step 5 — Understand the response content type
+
+    Your GET and POST endpoints currently return a String.
+
+    For example:
+
+    return String.format(
+        "{\"message\":\"Hello %s %s\"}",
+        firstName,
+        lastName
+    );
+
+    The response body is:
+
+    {"message":"Hello illary huaylupo"}
+
+    But your HTTP header says:
+
+    Content-Type: text/plain;charset=UTF-8
+
+    That distinction is worth understanding.
+
+    Response body: The actual content returned to the client.
+    Content type: The header that tells the client what kind of content the server is returning.
+
+    Your response body contains valid JSON text, but the declared content type is plain text.
+
+    For a more conventional REST API, you would normally return a Java response object and let Spring serialize that object as JSON.
+
+    For example, you could create a response class with a message property and return an instance of it.
+
+    Spring would then use its JSON message converter to produce a JSON response with the appropriate content type.
+
+    For now, don't change your existing code. Your current implementation is working, and it's useful to understand the original example before making improvements.

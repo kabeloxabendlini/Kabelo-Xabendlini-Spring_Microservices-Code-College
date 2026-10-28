@@ -1,0 +1,29 @@
+1.) cd licensing-service
+    mvn clean package dockerfile:build
+
+2.) docker-compose up
+    docker ps
+
+3.) GET http://localhost:8082/v1/organization/optimaGrowth/license/0235431845
+
+4.) 4. Key learning points
+
+        Containerization: Packages the application without changing its Java code.
+        Dockerfile: Defines how the application is built and run inside a container.
+        Docker Compose: Defines the environment in which services run.
+        Maven plugin: Integrates Docker image creation into the build process.
+        Multi-stage builds: Separate build-time operations from the runtime image.
+        Environment variables: Allow configuration to be supplied externally.
+        Twelve-factor disposability: Services should be capable of starting and stopping quickly.
+        Testing checklist
+        Build the Docker image successfully.
+        Confirm the image appears in docker images.
+        Start the application using Docker Compose.
+        Verify the container and port mapping with docker ps.
+        Send the GET request and compare its response with Chapter 3.
+        Stop the container and verify that its port is no longer available.
+
+        Main takeaway: Containerization packages the licensing service  
+        into a portable Docker image, while Docker Compose defines its runtime environment. 
+        These concepts form the foundation for running interconnected microservices  
+        in subsequent chapters.
