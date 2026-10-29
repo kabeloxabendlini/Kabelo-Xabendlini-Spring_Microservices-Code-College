@@ -18,6 +18,15 @@
         -ContentType "application/json" `
         -Body $body
 
+        Invoke-RestMethod `
+    -Uri "http://localhost:8081/v1/organization/optimaGrowth/license" `
+    -Method Post `
+    -Headers @{
+        "Accept-Language" = "en"
+    } `
+    -ContentType "application/json" `
+    -Body $body
+
 4.) Putting everything together
     Here is the architecture to remember:
     When a client sends a request to your licensing service:
