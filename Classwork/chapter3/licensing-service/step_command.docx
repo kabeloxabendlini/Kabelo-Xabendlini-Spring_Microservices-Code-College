@@ -3,7 +3,20 @@
 
 2.) http://localhost:8080/v1/organization/optimaGrowth/license/0235431845
 
-3.) http://localhost:8080/v1/organization/optimaGrowth/license
+    3.) $body = @{
+        licenseId   = "1234"
+        productName = "Ostock"
+        licenseType = "full"
+    } | ConvertTo-Json
+
+    Invoke-RestMethod `
+        -Uri "http://localhost:8081/v1/organization/optimaGrowth/license" `
+        -Method Post `
+        -Headers @{
+            "Accept-Language" = "es"
+        } `
+        -ContentType "application/json" `
+        -Body $body
 
 4.) Putting everything together
     Here is the architecture to remember:
