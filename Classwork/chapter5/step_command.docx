@@ -1,0 +1,44 @@
+1.) mvn clean package dockerfile:build
+    cd docker && docker-compose -p chapter5 up
+
+2.) 1.) $defaultConfig = Invoke-RestMethod -Uri "http://localhost:8071/licensing-service/default" -Method Get
+
+        $defaultConfig | ConvertTo-Json -Depth 10
+
+    2.) $devConfig = Invoke-RestMethod -Uri "http://localhost:8071/licensing-service/dev" -Method Get
+
+        $devConfig | ConvertTo-Json -Depth 10
+
+    3.) "DEFAULT CONFIGURATION"
+
+        $defaultConfig.propertySources | ForEach-Object {
+            [PSCustomObject]@{
+                Source = $_.name
+                ExampleProperty = $_.source.'example.property'
+            }
+        }
+
+        "DEV CONFIGURATION"
+
+        $devConfig.propertySources | ForEach-Object {
+            [PSCustomObject]@{
+                Source = $_.name
+                ExampleProperty = $_.source.'example.property'
+            }
+        }
+
+4.) What to learn from it
+    The licensing service's 
+    own application code contains zero 
+    database credentials — its bootstrap.yml 
+    holds only its name, profile, and the Config Server URI. 
+    Everything environment-specific (datasource URL, credentials, feature properties) 
+    lives centrally, per profile, encrypted where sensitive. 
+    In principle the same Docker image can run in dev or prod 
+    just by changing the active profile. Caveat for this code:
+    the compose file sets PROFILE and CONFIGSERVER_URI, 
+    but the Dockerfile's ENTRYPOINT never reads them. 
+    The profile comes from bootstrap.yml (hard-coded dev). 
+    Setting SPRING_PROFILES_ACTIVE: prod in the compose file 
+    would switch it, but there is no ostock_prod database, 
+    so the service would fail to start.
