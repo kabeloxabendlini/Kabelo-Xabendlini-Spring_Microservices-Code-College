@@ -1,5 +1,7 @@
-1.) mvn clean package dockerfile:build
-    cd docker && docker-compose -p chapter5 up
+1.) 1.) mvn clean package dockerfile:build
+        cd docker && docker-compose -p chapter5 up
+    
+    2.) Invoke-RestMethod -Uri "http://localhost:8081/actuator/health" -Method Get
 
 2.) 1.) $defaultConfig = Invoke-RestMethod -Uri "http://localhost:8071/licensing-service/default" -Method Get
 
