@@ -1,0 +1,35 @@
+1.) docker compose -p chapter6 -f ".\docker\docker-compose.chapter6.yml" ps
+
+2.) Invoke-RestMethod `
+    -Uri "http://localhost:8073/eureka/apps/organization-service" `
+    -Headers @{ Accept = "application/json" } |
+    ConvertTo-Json -Depth 10
+
+3.) 1.) Invoke-RestMethod `
+        -Uri "http://localhost:8082/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62/discovery" `
+        -Method Get | Format-List
+
+    2.) Invoke-RestMethod `
+        -Uri "http://localhost:8082/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62/rest" `
+        -Method Get | Format-List
+
+    3.) Invoke-RestMethod `
+        -Uri "http://localhost:8082/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62/feign" `
+        -Method Get | Format-List
+        
+4.) licensing-service
+        └── src
+            └── main
+                └── java
+                    └── com.optimagrowth.license.service.client
+                        ├── OrganizationDiscoveryClient.java
+                        ├── OrganizationRestTemplateClient.java
+                        └── OrganizationFeignClient.java
+
+    "This concludes my Chapter 6 demonstration.
+    I have successfully configured the Config Server, 
+    Eureka Server, Licensing Service and Organization Service.
+    I have also demonstrated that both microservices register 
+    with Eureka and that the Licensing Service can communicate 
+    with the Organization Service using DiscoveryClient, RestTemplate and Feign.
+    All three approaches returned the expected results."
