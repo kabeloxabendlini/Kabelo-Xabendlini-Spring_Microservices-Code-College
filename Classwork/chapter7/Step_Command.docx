@@ -1,0 +1,74 @@
+Part 1 — Introduction
+
+On screen: Open your Chapter 7 project in your IDE. Display LicenseService.java.
+What to say:
+
+Video narration — Introduction
+In this demonstration, I will be exploring resilience patterns in Spring Microservices.
+In a microservices architecture, individual services communicate with one another to perform different operations. However, these services can experience failures, slow responses, or periods of unavailability.
+If one service becomes unavailable, it can affect other services that depend on it.
+To help prevent these problems, Spring provides integration with Resilience4j, which allows us to implement different resilience patterns.
+In this demonstration, I will focus on four important patterns: Circuit Breaker, Rate Limiter, Retry, and Bulkhead.
+I will also demonstrate how a fallback method provides an alternative response when an operation fails.
+
+Part 2 — Explain the four annotations
+On screen: Scroll to getLicensesByOrganization() in LicenseService.java.
+
+Point to each annotation as you explain it.
+Video narration — Four resilience patterns
+Here we can see the getLicensesByOrganization method in our LicenseService class.
+This method retrieves licensing information for a particular organization.
+Above the method, we have four resilience annotations.
+The first is the Circuit Breaker annotation. Its purpose is to monitor failures and prevent repeated calls to a service that is experiencing problems.
+The second is the Rate Limiter. This controls how many requests can be processed within a specified period.
+The third is Retry. This allows the application to attempt an operation again when certain failures occur.
+Finally, we have Bulkhead. This limits concurrent operations to prevent one part of the application from consuming too many resources.
+Notice that these annotations reference configuration names. This allows us to configure their behaviour separately in our bootstrap.yml file.
+
+Part 3 — Explain the YAML configuration
+
+On screen: Open:
+
+licensing-service/src/main/resources/bootstrap.yml
+Find each configuration block.
+However, because your current annotation uses Type.SEMAPHORE, those thread-pool settings 
+are not the active bulkhead configuration for this method.
+What to say:
+Video narration — YAML configuration
+Now I am opening the bootstrap.yml configuration file.
+This file allows us to configure how each resilience pattern behaves without placing all
+the configuration directly inside our Java code.
+For example, our Circuit Breaker uses a failure rate threshold of 50 percent.
+Our Rate Limiter allows five requests within a five-second period.
+Our Retry configuration allows up to five attempts, with a ten-second delay between attempts.
+Finally, our Bulkhead configuration limits the number of concurrent operations.
+This separation between Java annotations and YAML configuration makes the application 
+easier to maintain and configure.
+
+Part 4 — Explain and demonstrate the fallback
+On screen: Return to LicenseService.java and find buildFallbackLicenseList().
+
+What to say:
+Video narration — Fallback method
+Next, I want to demonstrate the fallback method.
+A fallback method provides an alternative response when an operation fails.
+In this example, if the Licensing Service encounters a configured failure,
+the fallback method creates a placeholder License object.
+Instead of simply exposing an exception to the client, the application 
+returns a message explaining that licensing information is currently unavailable.
+This helps provide a more controlled response when something goes wrong.
+
+Part 5 - Demonstrate the application running
+
+First, show the containers:
+docker-compose -p chapter7 ps
+
+Then demonstrate the health endpoint:
+Invoke-RestMethod -Uri "http://localhost:8082/actuator/health" -Method Get
+
+On screen - Demonstrate a successful database response
+
+On screen: Run:
+$organizationId = "e839ee96-28de-4f67-bb79-870ca89743a0"
+
+Invoke-RestMethod -Uri "http://localhost:8082/v1/organization/$organizationId/license/" -Method Get
