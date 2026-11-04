@@ -3,7 +3,7 @@ services:
   database:
     image: postgres:latest
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "postgres"
@@ -79,7 +79,7 @@ services:
       configserver:
         condition: service_started
     ports:
-      - "8080:8080"
+      - "8082:8080"
     networks:
       - backend
   organizationservice:
