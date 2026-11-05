@@ -3,10 +3,32 @@
     cd docker
     docker-compose -p chapter8 up
 
-2.) curl http://localhost:8072/actuator/gateway/routes
+2.) Invoke-RestMethod `
+    -Uri "http://localhost:8072/actuator/gateway/routes" `
+    -Method Get |
+    ConvertTo-Json -Depth 10
 
-3.) 1.) curl http://localhost:8072/organization/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3
+3.) 1.) $organizationId = "d898a142-de44-466c-8c88-9ceb2c2429d3"
+
+        Invoke-RestMethod `
+        -Uri "http://localhost:8072/organization/v1/organization/$organizationId" `
+        -Method Get |
+        ConvertTo-Json -Depth 10
     
-    2.) curl http://localhost:8072/license/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62
+    2.) $licenseId = "f2a9c9d4-d2c0-44fa-97fe-724d77173c62"
 
-4.) curl -i http://localhost:8072/license/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62
+        Invoke-RestMethod `
+        -Uri "http://localhost:8072/license/v1/organization/$organizationId/license/$licenseId" `
+        -Method Get |
+        ConvertTo-Json -Depth 10
+
+4.) 1.) Invoke-WebRequest `
+        -Uri "http://localhost:8072/license/v1/organization/$organizationId/license/$licenseId" `
+        -Method Get |
+        Select-Object -ExpandProperty Headers
+
+    2.) docker compose -p chapter8 -f ".\docker\docker-compose.yml" logs --tail 200 gatewayserver |
+        Select-String -Pattern "correlation|tracking|tmx"
+
+    3.) docker compose -p chapter8 -f ".\docker\docker-compose.yml" logs --tail 200 licensingservice |
+        Select-String -Pattern "Correlation|correlation|tmx"    
