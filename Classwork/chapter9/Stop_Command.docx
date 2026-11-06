@@ -1,4 +1,6 @@
-1.) .\docker\docker-compose.yml
+1.) 1.) .\docker\docker-compose.yml
+   
+    2.) docker compose -f ".\docker\docker-compose.yml" -p chapter9 ps
 
 2.) curl.exe -i "http://localhost:8081/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3"
 
