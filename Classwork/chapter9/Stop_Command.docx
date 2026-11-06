@@ -1,0 +1,37 @@
+1.) .\docker\docker-compose.yml
+
+2.) curl.exe -i "http://localhost:8081/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3"
+
+3.) $tokenResponse = Invoke-RestMethod `
+        -Method Post `
+        -Uri "http://localhost:8083/auth/realms/spmia-realm/protocol/openid-connect/token" `
+        -ContentType "application/x-www-form-urlencoded" `
+        -Body @{
+            grant_type    = "password"
+            client_id     = "ostock"
+            client_secret = $ostock.secret
+            username      = "illary.huaylupo"
+            password      = "password1"
+        }
+
+    $accessToken = $tokenResponse.access_token
+
+    Write-Host "Access token successfully obtained." -ForegroundColor Green
+
+4.) 1.) curl.exe -i `
+        -H "Authorization: Bearer $accessToken" `
+        "http://localhost:8081/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3"
+
+    2.) curl.exe -i `
+        -H "Authorization: Bearer $accessToken" `
+        "http://localhost:8072/license/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62"
+
+5.) 1.) curl.exe -i `
+        -X DELETE `
+        -H "Authorization: Bearer $userToken" `
+        "http://localhost:8081/v1/organization/e6a625cc-718b-48c2-ac76-1dfdff9a531e"
+
+    2.) curl.exe -i `
+        -X DELETE `
+        -H "Authorization: Bearer $accessToken" `
+        "http://localhost:8081/v1/organization/e6a625cc-718b-48c2-ac76-1dfdff9a531e"

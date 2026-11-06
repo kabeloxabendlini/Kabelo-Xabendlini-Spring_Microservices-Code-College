@@ -3,7 +3,7 @@ services:
   database:
     image: postgres:latest
     ports:
-      - "5432:5432"
+      - "5434:5432"
     environment:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "postgres"
@@ -52,6 +52,7 @@ services:
       SERVER_PORT: "8072"
       CONFIGSERVER_URI: "http://configserver:8071"
       EUREKASERVER_URI: "http://eurekaserver:8070/eureka/"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eurekaserver:8070/eureka/"
       EUREKASERVER_PORT: "8070"
       CONFIGSERVER_PORT: "8071"
     depends_on:
@@ -101,7 +102,7 @@ services:
       - backend
 
   keycloak:
-    image: jboss/keycloak
+    image: quay.io/keycloak/keycloak:17.0.0-legacy
     restart: always
     environment:
       KEYCLOAK_VERSION: 6.0.1
@@ -115,7 +116,7 @@ services:
       - "-Dkeycloak.profile.feature.scripts=enabled"
       - "-Dkeycloak.profile.feature.upload_scripts=enabled"
     ports:
-      - "8080:8080"
+      - "8083:8080"
     networks:
       backend:
         aliases:

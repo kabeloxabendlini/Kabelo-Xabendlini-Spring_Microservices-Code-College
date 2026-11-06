@@ -31,4 +31,65 @@
         Select-String -Pattern "correlation|tracking|tmx"
 
     3.) docker compose -p chapter8 -f ".\docker\docker-compose.yml" logs --tail 200 licensingservice |
-        Select-String -Pattern "Correlation|correlation|tmx"    
+        Select-String -Pattern "Correlation|correlation|tmx" 
+
+    4.) docker compose -p chapter8 -f ".\docker\docker-compose.yml" logs --tail 200 licensingservice |
+        Select-String -Pattern "Correlation|correlation|tmx"  
+
+    5.) $response = Invoke-WebRequest `
+        -Uri "http://localhost:8072/license/v1/organization/$organizationId/license/$licenseId" `
+        -Method Get `
+        -UseBasicParsing
+
+        Write-Host "`n--- RESPONSE CORRELATION ID ---" -ForegroundColor Cyan
+
+        $response.Headers["tmx-correlation-id"] 
+    
+    6.) docker compose -p chapter8 -f ".\docker\docker-compose.yml" logs --tail 200 licensingservice |
+        Select-String -Pattern "Correlation|correlation|tmx"
+
+        Write-Host "`n--- SENDING REQUEST THROUGH GATEWAY ---" -ForegroundColor Cyan
+
+    7.) $response = Invoke-WebRequest `
+        -Uri "http://localhost:8072/license/v1/organization/$organizationId/license/$licenseId" `
+        -Method Get `
+        -UseBasicParsing
+
+        Write-Host "`n--- HTTP STATUS ---" -ForegroundColor Cyan
+        $response.StatusCode
+
+        Write-Host "`n--- CORRELATION ID RESPONSE HEADER ---" -ForegroundColor Cyan
+        $response.Headers["tmx-correlation-id"]
+
+    8.) Write-Host "`n--- GATEWAY CORRELATION LOGS ---" -ForegroundColor Cyan
+
+        docker compose -p chapter8 -f ".\docker\docker-compose.yml" logs --since 2m gatewayserver |
+        Select-String -Pattern "correlation|tracking|tmx"
+
+    9.) Write-Host "`n--- LICENSING SERVICE CORRELATION LOGS ---" -ForegroundColor Cyan
+
+        docker compose -p chapter8 -f ".\docker\docker-compose.yml" logs --since 2m licensingservice |
+        Select-String -Pattern "Correlation|correlation|tmx"
+
+    10.)    docker compose -p chapter8 -f ".\docker\docker-compose.yml" logs gatewayserver |
+            Select-String -Pattern "b13bab42-2578-405f-8271-a9f0e31a79e8"
+
+    11.)    docker compose -p chapter8 -f ".\docker\docker-compose.yml" logs licensingservice |
+            Select-String -Pattern "b13bab42-2578-405f-8271-a9f0e31a79e8"
+
+    12.)    docker compose -p chapter8 -f ".\docker\docker-compose.yml" logs gatewayserver |
+            Select-String -Pattern "b13bab42-2578-405f-8271-a9f0e31a79e8"
+
+    13.)   $testCorrelationId = "TEST-123"
+
+            $response = Invoke-WebRequest `
+            -Uri "http://localhost:8072/license/v1/organization/$organizationId/license/$licenseId" `
+            -Method Get `
+            -Headers @{ "tmx-correlation-id" = $testCorrelationId } `
+            -UseBasicParsing
+
+            Write-Host "`n--- HTTP STATUS ---" -ForegroundColor Cyan
+            $response.StatusCode
+
+            Write-Host "`n--- RETURNED CORRELATION ID ---" -ForegroundColor Cyan
+            $response.Headers["tmx-correlation-id"]
