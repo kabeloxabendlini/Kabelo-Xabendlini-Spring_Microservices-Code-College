@@ -1,0 +1,323 @@
+# Chapter 10 – Spring Microservices in Action
+## Video Demonstration Steps and Learning Outcomes
+
+### 1. Build and Start the Microservices
+
+**Objective:** Start all the Chapter 10 microservices and supporting infrastructure.
+
+1. Open PowerShell in the Chapter 10 project directory.
+2. Build the Maven project:
+
+   ```powershell
+   mvn clean package -DskipTests
+   ```
+
+3. Start all Docker containers:
+
+   ```powershell
+   docker compose -p chapter10 -f ".\docker\docker-compose.yml" up -d
+   ```
+
+4. Check that all containers are running:
+
+   ```powershell
+   docker compose -p chapter10 -f ".\docker\docker-compose.yml" ps
+   ```
+
+5. Open the Eureka dashboard:
+
+   http://localhost:8170
+
+6. Show that the microservices have registered with Eureka.
+
+**What we learn:**
+- How Docker Compose starts multiple microservices and supporting infrastructure.
+- How Eureka provides service discovery.
+- How microservices register themselves with Eureka.
+- How supporting services such as PostgreSQL, Kafka, Zookeeper and Redis fit into a microservices environment.
+
+---
+
+### 2. Understand the Kafka Producer and Consumer
+
+**Objective:** Demonstrate how one microservice publishes events and another microservice receives them.
+
+**A. Organization Service – Producer**
+
+Open:
+
+`organization-service/src/main/java/com/optimagrowth/organization/events/source/SimpleSourceBean.java`
+
+Show the following code:
+
+```java
+source.output().send(
+    MessageBuilder.withPayload(change).build()
+);
+```
+
+Explain:
+- The Organization Service creates an `OrganizationChangeModel`.
+- The model contains the event type, action, organization ID and correlation ID.
+- The message is sent through Spring Cloud Stream's output channel.
+- The Java code does not directly call Kafka APIs.
+
+**B. Licensing Service – Consumer**
+
+Open:
+
+`licensing-service/src/main/java/com/optimagrowth/license/events/handler/OrganizationChangeHandler.java`
+
+Show:
+
+```java
+@EnableBinding(CustomChannels.class)
+
+@StreamListener("inboundOrgChanges")
+public void loggerSink(OrganizationChangeModel organization)
+```
+
+Explain:
+- The Licensing Service listens for incoming organization events.
+- It receives the `OrganizationChangeModel`.
+- It identifies the event action.
+- It currently logs GET, SAVE, UPDATE and DELETE events.
+
+**C. Show the channel configuration**
+
+Open:
+
+`configserver/src/main/resources/config/organization-service.properties`
+
+Show:
+
+```properties
+spring.cloud.stream.bindings.output.destination=orgChangeTopic
+```
+
+Then open:
+
+`configserver/src/main/resources/config/licensing-service.properties`
+
+Show:
+
+```properties
+spring.cloud.stream.bindings.inboundOrgChanges.destination=orgChangeTopic
+spring.cloud.stream.bindings.inboundOrgChanges.group=licensingGroup
+```
+
+Explain:
+- Both microservices are connected to the same Kafka topic: `orgChangeTopic`.
+- The producer sends messages to the topic.
+- The consumer subscribes to the topic.
+- Spring Cloud Stream separates the application code from the messaging infrastructure.
+
+**What we learn:**
+- The difference between a message producer and a message consumer.
+- How Spring Cloud Stream simplifies messaging between microservices.
+- How channels connect application code to messaging infrastructure.
+- How configuration determines which Kafka topic a channel uses.
+- How different microservices can communicate without directly depending on one another.
+
+---
+
+### 3. Watch Events Travel Through Kafka
+
+**Objective:** Demonstrate actual messages travelling from the Organization Service through Kafka to the Licensing Service.
+
+**A. Start a Kafka console consumer**
+
+Run:
+
+```powershell
+docker exec -it chapter10-kafkaserver-1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic orgChangeTopic --from-beginning
+```
+
+This displays messages published to `orgChangeTopic`.
+
+**B. Generate GET events**
+
+Call the Licensing Service endpoint to retrieve a license:
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8181/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62" -Method Get -Headers $headers
+```
+
+Explain:
+- The Licensing Service requests organization information.
+- The Organization Service handles the organization lookup.
+- The Organization Service publishes a GET event.
+- Kafka receives the message.
+
+**C. Generate an UPDATE event**
+
+Retrieve the organization:
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8182/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3" -Method Get -Headers $headers
+```
+
+Then update its name:
+
+```powershell
+$updateBody = @{
+    id = "d898a142-de44-466c-8c88-9ceb2c2429d3"
+    name = "OptimaGrowth Updated"
+    contactName = "Admin"
+    contactEmail = "illaryhs@gmail.com"
+    contactPhone = "888888888"
+} | ConvertTo-Json
+
+Invoke-RestMethod -Uri "http://localhost:8182/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3" -Method Put -Headers $headers -ContentType "application/json" -Body $updateBody
+```
+
+Show the UPDATE message in the Kafka console consumer.
+
+**D. Verify that Licensing Service received the event**
+
+Run:
+
+```powershell
+docker logs --since 15m chapter10-licensingservice-1 2>&1 | Select-String "Received a UPDATE event"
+```
+
+Explain:
+- The Organization Service published the UPDATE event.
+- Kafka received and stored the message.
+- The Licensing Service consumed the message.
+- The consumer logged the organization ID and event type.
+
+**What we learn:**
+- How event-driven communication works between microservices.
+- How Kafka acts as a message broker.
+- How a producer and consumer communicate asynchronously.
+- How one microservice can notify other microservices about changes without directly calling them.
+- How consumer groups allow messages to be consumed by a group of application instances.
+
+---
+
+### 4. Demonstrate Redis Caching and the Stale Cache Problem
+
+**Objective:** Demonstrate how Redis reduces repeated calls to another microservice and what happens when cached information becomes outdated.
+
+**A. Demonstrate a cache miss**
+
+Open:
+
+`licensing-service/src/main/java/com/optimagrowth/license/service/client/OrganizationRestTemplateClient.java`
+
+Show the `checkRedisCache()` method.
+
+Explain:
+- The Licensing Service first checks Redis.
+- If the organization is not found, Redis returns no cached object.
+- The Licensing Service then retrieves the organization from the Organization Service.
+- The result is saved in Redis.
+
+The application log displays:
+
+```text
+Unable to locate organization from the redis cache
+```
+
+**B. Demonstrate a cache hit**
+
+Make another license request using the same endpoint.
+
+The application log displays:
+
+```text
+I have successfully retrieved an organization ... from the redis cache
+```
+
+Explain:
+- Redis already contains the organization.
+- The Licensing Service retrieves the cached object.
+- It does not need to fetch the organization again.
+
+**C. Inspect Redis directly**
+
+Show the Redis keys:
+
+```powershell
+docker exec chapter10-redisserver-1 redis-cli KEYS "*"
+```
+
+Show the organization hash:
+
+```powershell
+docker exec chapter10-redisserver-1 redis-cli HGETALL "organization:d898a142-de44-466c-8c88-9ceb2c2429d3"
+```
+
+Explain:
+- Redis stores the organization as a hash.
+- The hash contains the organization ID, name and contact information.
+- Spring Data Redis uses the `@RedisHash("organization")` annotation to identify the Redis entity.
+
+**D. Demonstrate stale cached information**
+
+After updating the organization name to `OptimaGrowth Updated`, inspect Redis:
+
+```powershell
+docker exec chapter10-redisserver-1 redis-cli HGET "organization:d898a142-de44-466c-8c88-9ceb2c2429d3" name
+```
+
+The result remains:
+
+```text
+OptimaGrowth
+```
+
+Now request the license again:
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8181/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62" -Method Get -Headers $headers | Select-Object licenseId, organizationName, contactName
+```
+
+The Licensing Service still returns:
+
+```text
+organizationName : OptimaGrowth
+```
+
+Explain:
+- The database contains the updated organization name.
+- Kafka successfully delivered the UPDATE event.
+- The Licensing Service received and logged the event.
+- However, the event consumer does not invalidate or update the Redis cache.
+- Consequently, the Licensing Service continues returning outdated information.
+
+**What we learn:**
+- How Redis caching improves performance.
+- How cache misses and cache hits work.
+- How Spring Data Redis stores objects as Redis hashes.
+- Why caching reduces repeated network requests between microservices.
+- What stale cache data means.
+- Why receiving an event is not enough: the consumer must take appropriate action.
+- Why cache invalidation is an important part of distributed application design.
+
+---
+
+# Overall Learning Outcomes
+
+After completing Chapter 10, we understand:
+
+1. **Event-driven architecture:** Microservices can communicate through events instead of relying exclusively on direct HTTP requests.
+
+2. **Kafka messaging:** Kafka provides a message broker that allows producers and consumers to exchange messages asynchronously.
+
+3. **Spring Cloud Stream:** Application code can publish and consume messages without being tightly coupled to Kafka-specific APIs.
+
+4. **Loose coupling:** The Organization Service does not need to know which other microservices are listening for its events.
+
+5. **Redis caching:** Frequently requested organization information can be stored and retrieved from Redis to reduce repeated service calls.
+
+6. **Cache invalidation:** Cached information can become outdated when the underlying database changes. Events must be handled appropriately to keep cached data consistent.
+
+7. **Distributed systems:** Microservices must coordinate communication, data consistency and performance across different services.
+
+## Final Takeaway
+
+Chapter 10 demonstrates how Spring Cloud Stream and Kafka enable event-driven communication between microservices, while Redis improves performance through caching.
+
+The most important lesson from the demonstration is that **event-driven communication and caching must work together**. Publishing and receiving an event does not automatically keep cached data up to date. The application must explicitly implement cache invalidation or cache updates when relevant events arrive.
