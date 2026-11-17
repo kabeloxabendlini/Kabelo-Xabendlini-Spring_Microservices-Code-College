@@ -1,0 +1,85 @@
+1.) 1.) 1.) cd manning-smia-master\chapter11
+    
+    1.) 2.) & "C:\Users\Admin\Tools\maven-mvnd-2.0.0-rc-3-windows-amd64\mvn\bin\mvn.cmd" clean package dockerfile:build -DskipTests
+    
+    1.) 3.) cd docker
+    
+    1.) 4.) docker-compose -p chapter11 up
+
+    2.) 1.) Set-Location "C:\Users\Admin\Documents\Code College Repositories\Spring_Microservices - Code College\Classwork\chapter11"
+
+    2.  2.) docker compose -f .\docker\docker-compose.yml -p chapter11 ps
+
+2.  1.)   1.) docker exec redis redis-cli FLUSHALL
+
+    1.)   2.) docker exec redis redis-cli DBSIZE
+
+2.) 2.)   1.) curl.exe -i "http://localhost:8072/license/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62"
+
+    2.)   2.) docker exec redis redis-cli DBSIZE
+
+    3.)   1.) docker exec redis redis-cli KEYS "*"
+
+    3.)   2.) docker logs gateway 2>&1 | Select-String -SimpleMatch "PASTE_TRACE_ID"
+
+    3.)   3.) docker logs licensing-service 2>&1 | Select-String -SimpleMatch "PASTE_TRACE_ID"
+
+    3.)   4.) docker logs organization-service 2>&1 | Select-String -SimpleMatch "PASTE_TRACE_ID"
+
+    3.)   5.) docker logs gateway licensing-service organization-service 2>&1 |
+              Select-String -SimpleMatch "PASTE_TRACE_ID"
+
+3.) 1.)   1.) curl.exe -i "http://localhost:8072/license/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62"
+   
+    1.)   2.) docker exec redis redis-cli DBSIZE
+
+    1.)   3.) docker exec redis redis-cli KEYS "*"
+
+    2.)   1.) docker logs gateway 2>&1 | Select-String -SimpleMatch "PASTE_TRACE_ID"
+
+    2.)   2.) docker logs licensing-service 2>&1 | Select-String -SimpleMatch "PASTE_TRACE_ID"
+
+    2.)   3.) docker logs organization-service 2>&1 | Select-String -SimpleMatch "PASTE_TRACE_ID"
+
+4.) 1.)   1.) http://localhost:9411/
+
+    1.)   2.) | Trace | Spans |
+              |---|---:|
+              | Cache miss | 13 |
+              | Cache hit | 5 |
+
+    2.)   1.) docker compose -p chapter11 exec redis redis-cli FLUSHALL
+
+    2.)   2.) docker exec redis redis-cli FLUSHALL
+
+4.) 1.)   1.) Invoke-RestMethod -Uri "http://localhost:9200/_cat/indices/logstash-*?format=json"
+
+    1.)   2.)   $aggregation = @{
+                    size = 0
+                    aggs = @{
+                        applications = @{
+                            terms = @{
+                                field = "application_name.keyword"
+                                size = 10
+                            }
+                        }
+                    }
+                } | ConvertTo-Json -Depth 6
+
+                $logSummary = Invoke-RestMethod `
+                    -Uri "http://localhost:9200/logstash-*/_search" `
+                    -Method Post `
+                    -ContentType "application/json" `
+                    -Body $aggregation
+
+                $logSummary.aggregations.applications.buckets |
+                    Select-Object key, doc_count |
+                    Format-Table -AutoSize
+
+    2.)   1.) http://localhost:5601/
+
+5.) 1.)   1.) docker compose -f .\docker\docker-compose.yml -p chapter11 ps
+
+    1.)   2.) Invoke-RestMethod -Uri "http://localhost:9411/api/v2/services"
+
+    1.)   3.) Invoke-RestMethod -Uri "http://localhost:9200/_cluster/health"
