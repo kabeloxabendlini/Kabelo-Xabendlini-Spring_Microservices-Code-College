@@ -2,7 +2,6 @@ version: '2.1'
 services:
   database:
     image: postgres:latest
-    container_name: postgres
     ports:
       - "5432:5432"
     environment:
@@ -23,7 +22,6 @@ services:
       retries: 5
   configserver:
     image: ostock/configserver:chapter12
-    container_name: configServer
     ports:
        - "8071:8071"
     environment:
@@ -34,7 +32,6 @@ services:
           - "configserver"
   eurekaserver:
     image: ostock/eurekaserver:chapter12
-    container_name: eurekaServer
     ports:
       - "8070:8070"
     depends_on:
@@ -48,7 +45,6 @@ services:
           - "eurekaserver"
   gatewayserver:
     image: ostock/gatewayserver:chapter12
-    container_name: gateway
     ports:
       - "8072:8072"
     environment:
@@ -71,7 +67,6 @@ services:
           - "gateway"
   zookeeper:
     image: wurstmeister/zookeeper:latest
-    container_name: zookeeper
     ports:
       - 2181:2181
     networks:
@@ -80,7 +75,6 @@ services:
           - "zookeeper"
   kafkaserver:
     image: wurstmeister/kafka:latest
-    container_name: kafka
     ports:
       - 9092:9092
     environment:
@@ -98,7 +92,6 @@ services:
           - "kafka"
   redisserver:
     image: redis:alpine
-    container_name: redis
     ports:
       - 6379:6379
     networks:
@@ -107,7 +100,6 @@ services:
           - "redis"
   authenticationservice:
     image: ostock/authentication-service:chapter12
-    container_name: authentication-service
     environment:
       PROFILE: "dev"
       CONFIGSERVER_URI: "http://configserver:8071"
@@ -126,7 +118,6 @@ services:
           - "authenticationservice"
   licensingservice:
     image: ostock/licensing-service:chapter12
-    container_name: licensing-service
     environment:
       PROFILE: "dev"
       CONFIGSERVER_URI: "http://configserver:8071"
@@ -148,7 +139,6 @@ services:
       - backend
   organizationservice:
     image: ostock/organization-service:chapter12
-    container_name: organization-service
     environment:
       PROFILE: "dev"
       CONFIGSERVER_URI: "http://configserver:8071"
@@ -168,7 +158,6 @@ services:
       - backend
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.7.0
-    container_name: elasticsearch
     environment:
       - node.name=elasticsearch
       - discovery.type=single-node
@@ -190,9 +179,8 @@ services:
           - "elasticsearch"
   kibana:
     image: docker.elastic.co/kibana/kibana:7.7.0
-    container_name: kibana
     environment:
-      ELASTICSEARCH_URL: "http://elasticsearch:9300"
+      ELASTICSEARCH_HOSTS: "http://elasticsearch:9200"
     ports:
       - 5601:5601
     networks:
@@ -201,7 +189,6 @@ services:
           - "kibana"
   logstash:
     image: docker.elastic.co/logstash/logstash:7.7.0
-    container_name: logstash
     command: logstash -f /etc/logstash/conf.d/logstash.conf
     volumes:
       - ./config:/etc/logstash/conf.d
@@ -213,12 +200,11 @@ services:
           - "logstash"
   zipkin: 
     image: openzipkin/zipkin 
-    container_name: zipkin
     depends_on: 
       - elasticsearch
     environment: 
       - STORAGE_TYPE=elasticsearch
-      - "ES_HOSTS=elasticsearch:9300"
+      - "ES_HOSTS=http://elasticsearch:9200"
     ports:
       - "9411:9411"
     networks:
